@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Alaya</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_onboarding">OnboardingActivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_registration">RegistrationActivity</string>
+    <string name="title_activity_forgotpassword">ForgotpasswordActivity</string>
+    <string name="title_activity_splash_screen">SplashScreen</string>
+    <string name="title_activity_forgot">Forgot</string>
+    <string name="title_activity_appnaviagtion">Appnaviagtion</string>
+    <string name="title_activity_dashboard">DashboardActivity</string>
+    <string name="title_activity_home_screen">HomeScreen</string>
+    <string name="title_activity_today_screen">TodayScreen</string>
+    <string name="title_activity_today_fragment">TodayFragment</string>
+    <string name="title_activity_therapy_screen">TherapyScreen</string>
+    <string name="title_activity_dashboard_ui">DashboardUI</string>
+</resources>
