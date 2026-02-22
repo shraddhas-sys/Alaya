@@ -20,7 +20,7 @@ class MealPlannerScreen : ComponentActivity() {
         setContent {
             AlayaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting2(
+                    Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -31,7 +31,7 @@ class MealPlannerScreen : ComponentActivity() {
 }
 
 @Composable
-fun Greeting2(name: String, modifier: Modifier = Modifier) {
+fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
         modifier = modifier
@@ -40,8 +40,8 @@ fun Greeting2(name: String, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview2() {
+fun GreetingPreview() {
     AlayaTheme {
-        Greeting2("Android")
+        Greeting("Android")
     }
 }
