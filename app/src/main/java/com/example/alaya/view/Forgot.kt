@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,17 +57,15 @@ class Forgot : ComponentActivity() {
 
 @Composable
 fun Forgot(navController: NavController) {
-
-    val authViewModel: AuthViewModel = viewModel ()
+    val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F2FB))
+            .background(Color(0xFFEBE3F5))
     ) {
-        // Top Gradient Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -72,6 +74,18 @@ fun Forgot(navController: NavController) {
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(Color(0xFFF3E5AB), Color(0xFFB39DDB))
+                    )
+                )
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp)
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(topStart = 80.dp, topEnd = 80.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFB39DDB), Color(0xFFF3E5AB))
                     )
                 )
         )
@@ -86,80 +100,103 @@ fun Forgot(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 elevation = CardDefaults.cardElevation(10.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(26.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFFFFDE7), Color(0xFFF3E5F5))
+                            )
+                        )
+                        .padding(26.dp)
                 ) {
-                    Text(
-                        text = "Forgot Password",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF5E3EA1)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null,
+                            tint = Color(0xFF5E3EA1),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
 
-                    Text(
-                        text = "Mail Address Here",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                        Text(
+                            text = "Forgot Password",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF5E3EA1)
+                        )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    Text(
-                        text = "Enter the email address associated with your account",
-                        fontSize = 12.sp,
-                        color = Color.Gray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
+                        Text(
+                            text = "Mail Address Here",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
 
-                    Spacer(modifier = Modifier.height(22.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter your email address") },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                        Text(
+                            text = "Enter the email address associated with your account",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
 
-                    Spacer(modifier = Modifier.height(26.dp))
-                    Button(
-                        onClick = {
-                            authViewModel.forgotPassword(email) { success, error ->
-                                if (success) {
-                                    Toast.makeText(context, "Reset link sent! Check your email.", Toast.LENGTH_LONG).show()
-                                    navController.navigate("login") {
-                                        popUpTo("forgot") { inclusive = true }
+                        Spacer(modifier = Modifier.height(22.dp))
+
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Enter your email address") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = Color(0xFFB39DDB)
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(26.dp))
+
+                        Button(
+                            onClick = {
+                                authViewModel.forgotPassword(email) { success, error ->
+                                    if (success) {
+                                        Toast.makeText(context, "Reset link sent!", Toast.LENGTH_LONG).show()
+                                        navController.navigate("login") {
+                                            popUpTo("forgot") { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(context, error ?: "Failed", Toast.LENGTH_SHORT).show()
                                     }
-                                } else {
-                                    Toast.makeText(context, error ?: "Failed to send email", Toast.LENGTH_SHORT).show()
                                 }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E3EA1))
-                    ) {
-                        Text("Recover Password", color = Color.White)
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E3EA1))
+                        ) {
+                            Text("Recover Password", color = Color.White)
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Text(
+                            text = "Back to Login",
+                            color = Color(0xFF5E3EA1),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .clickable { navController.navigate("login") }
+                                .padding(top = 4.dp)
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Text(
-                        text = "Back to Login",
-                        color = Color(0xFF5E3EA1),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .clickable { navController.navigate("login") }
-                            .padding(top = 4.dp)
-                    )
                 }
             }
         }
