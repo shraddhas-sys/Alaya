@@ -26,7 +26,10 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val FORGOT = "forgot"
+
     const val DASHBOARD = "dashboard"
+    const val PLANNER = "planner"
+    const val MEALS = "meals"
 }
 
 @Composable
@@ -43,6 +46,15 @@ fun AppNavGraph() {
         composable(Routes.REGISTER) { RegistrationScreen(navController) }
         composable(Routes.FORGOT) { Forgot(navController) }
         composable(Routes.DASHBOARD) { DashboardUI(navController) }
+
+        composable(Routes.PLANNER) {
+            PlannerScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.MEALS) {
+            MealPlannerScreen(navController = navController)
+        }
     }
+
+
 }
 
