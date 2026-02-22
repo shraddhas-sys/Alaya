@@ -72,15 +72,13 @@ fun RegistrationScreen(navController: NavHostController) {
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(deepLavender, midLavender)))
     ) {
-        // theme which is circle
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(color = Color.White.copy(alpha = 0.12f), radius = 350f, center = center.copy(x = 100f, y = 150f))
             drawCircle(color = Color.White.copy(alpha = 0.08f), radius = 220f, center = center.copy(x = 900f, y = 450f))
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header Section - Spacing increased to push the card down
-            Spacer(modifier = Modifier.height(100.dp)) // Increased spacing here
+            Spacer(modifier = Modifier.height(100.dp))
 
             Column(modifier = Modifier.padding(horizontal = 35.dp)) {
                 Text(
@@ -92,9 +90,8 @@ fun RegistrationScreen(navController: NavHostController) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(50.dp)) // Space before the card
+            Spacer(modifier = Modifier.height(50.dp))
 
-           // Main content area
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
@@ -107,7 +104,6 @@ fun RegistrationScreen(navController: NavHostController) {
                         .padding(horizontal = 30.dp, vertical = 35.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Registration Form
                     ModernInput(label = "Full Name", value = fullName, onValueChange = { fullName = it })
                     ModernInput(label = "Email Address", value = email, onValueChange = { email = it })
                     ModernInput(label = "Password", value = password, onValueChange = { password = it }, isPass = true)
