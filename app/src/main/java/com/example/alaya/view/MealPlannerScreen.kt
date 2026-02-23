@@ -4,79 +4,42 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.alaya.ui.theme.AlayaBrownBtn
-import com.example.alaya.ui.theme.AlayaCream
-import com.example.alaya.ui.theme.AlayaDarkText
-import com.example.alaya.ui.theme.AlayaMutedText
-import com.example.alaya.ui.theme.AlayaPurple
-import com.example.alaya.ui.theme.AlayaPurpleLgt
-import com.example.alaya.ui.theme.AlayaTextMuted
-import com.example.alaya.ui.theme.RichCream
-import com.example.alaya.view.ui.theme.AlayaPurpleLight
-import com.example.alaya.view.ui.theme.AlayaPurplePrimary
-import com.example.alaya.view.ui.theme.AlayaTextDark
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.alaya.model.LocalMealItem
+import com.example.alaya.ui.theme.AlayaLavender
+import com.example.alaya.ui.theme.LavenderLight
+import com.example.alaya.ui.theme.SoftCream
 import com.example.alaya.view.ui.theme.AlayaTheme
-
+import com.example.alaya.viewmodel.MealViewModel
+import com.example.alaya.R
 
 
 class MealPlannerScreen : ComponentActivity() {
@@ -85,120 +48,213 @@ class MealPlannerScreen : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AlayaTheme {
-                MealPlannerScreen()
+                MealPlannerContent(onBack = { finish() })
             }
         }
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MealPlannerScreen(navController: NavHostController) {
-    var recipeInput by remember { mutableStateOf("") }
-    val recipes = remember {
-        mutableStateListOf(
-            RecipeItem("Hamburger", "Classic Beef", "Rs. 250"),
-            RecipeItem("Pepperoni Pizza", "Italian", "Rs. 350"),
-            RecipeItem("Cheese Sandwich", "Quick Snack", "Rs. 200"),
-            RecipeItem("Avocado Salad", "Healthy", "Rs. 300")
-        )
-    }
+fun MealPlannerContent(
+    onBack: () -> Unit,
+    vm: MealViewModel = viewModel()
+) {
+    var mealName by remember { mutableStateOf("") }
+    var selectedMealType by remember { mutableStateOf("Lunch") }
+    var proteinValue by remember { mutableFloatStateOf(75f) }
+    val addedMeals by vm.meals.collectAsState(initial = emptyList())
+    val mealTypes = listOf("Breakfast", "Dinner", "Lunch", "Snack", "Brunch", "Dessert")
 
     Scaffold(
-        containerColor = AlayaCream,
+        containerColor = SoftCream,
         topBar = {
             TopAppBar(
-                title = { Text("Meal Planner", fontWeight = FontWeight.Black, color = AlayaPurple) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = AlayaPurple)
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            color = Color.White,
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, AlayaLavender.copy(0.2f))
+                        ) {
+                            Text(
+                                text = "EAT",
+                                color = AlayaLavender,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+                                fontWeight = FontWeight.Black,
+                                fontSize = 14.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "PLANNER",
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AlayaLavender,
+                            fontSize = 18.sp,
+                            letterSpacing = 1.sp
+                        )
                     }
-                }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AlayaLavender)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        },
-        bottomBar = {
-            AlayaBottomNav(navController)
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 22.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Text("RECIPE BOOK", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaMutedText)
-            Text("Simple ideas", fontSize = 26.sp, fontWeight = FontWeight.Black, color = AlayaDarkText)
+            Spacer(modifier = Modifier.height(15.dp))
+            Text("POPULAR CHOICES", fontSize = 11.sp, fontWeight = FontWeight.Black, color = AlayaLavender.copy(0.7f))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                val popular = listOf(
+                    Pair("Oatmeal", R.drawable.img_10),
+                    Pair("Salad", R.drawable.img_11)
+                )
+                items(popular) { (name, resId) ->
+                    PopularMealCard(name, resId)
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Surface(color = Color.White, shape = RoundedCornerShape(24.dp), shadowElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
-                Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    TextField(
-                        value = recipeInput,
-                        onValueChange = { recipeInput = it },
-                        placeholder = { Text("e.g., Green Detox Bowl", fontSize = 14.sp, color = AlayaMutedText) },
-                        modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+            Surface(color = Color.White, shape = RoundedCornerShape(28.dp), border = BorderStroke(1.dp, LavenderLight)) {
+                Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Column {
+                        Text("MEAL NAME", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AlayaLavender)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = mealName,
+                            onValueChange = { mealName = it },
+                            placeholder = { Text("What are you eating?", fontSize = 14.sp) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = AlayaLavender,
+                                unfocusedBorderColor = LavenderLight,
+                                focusedContainerColor = SoftCream.copy(0.3f),
+                                unfocusedContainerColor = SoftCream.copy(0.3f)
+                            ),
+                            singleLine = true
                         )
-                    )
+                    }
+
+                    SelectionGrid(mealTypes, listOf(selectedMealType), { selectedMealType = it }, AlayaLavender)
+
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text("PROTEIN TARGET", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AlayaLavender)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Surface(color = SoftCream, shape = CircleShape) {
+                                Text("${proteinValue.toInt()}g", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontWeight = FontWeight.Bold, color = AlayaLavender, fontSize = 12.sp)
+                            }
+                        }
+                        Slider(
+                            value = proteinValue,
+                            onValueChange = { proteinValue = it },
+                            valueRange = 0f..150f,
+                            colors = SliderDefaults.colors(thumbColor = AlayaLavender, activeTrackColor = AlayaLavender, inactiveTrackColor = SoftCream)
+                        )
+                    }
+
                     Button(
                         onClick = {
-                            if (recipeInput.isNotBlank()) {
-                                recipes.add(0, RecipeItem(recipeInput, "Custom", "Planned"))
-                                recipeInput = ""
+                            if (mealName.isNotBlank()) {
+                                vm.addMeal(mealName, selectedMealType, "${proteinValue.toInt()}g Protein")
+                                mealName = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AlayaBrownBtn),
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AlayaLavender),
                         shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("ADD", fontWeight = FontWeight.Bold)
-                    }
+                    ) { Text("ADD TO PLAN", fontWeight = FontWeight.Bold, color = Color.White) }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("POPULAR FOOD", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaMutedText)
-                TextButton(onClick = { }) {
-                    Text("See All", color = Color(0xFFE57373), fontWeight = FontWeight.Bold)
-                }
-            }
+            Spacer(modifier = Modifier.height(30.dp))
+            Text("TODAY'S SCHEDULE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
-                items(recipes) { recipe ->
-                    PopularRecipeCard(recipe)
-                }
+            addedMeals.forEach { item ->
+                AddedMealCard(item, AlayaLavender, LavenderLight, onDelete = { vm.deleteMeal(item.id) })
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+fun AddedMealCard(item: LocalMealItem, themeColor: Color, lightColor: Color, onDelete: () -> Unit) {
+    Surface(color = Color.White, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, lightColor)) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(lightColor), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Restaurant, null, tint = themeColor, modifier = Modifier.size(18.dp))
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(item.type, fontSize = 12.sp, color = Color.Gray)
+            }
+            Text(item.protein, fontWeight = FontWeight.Black, fontSize = 12.sp, color = themeColor, modifier = Modifier.padding(end = 8.dp))
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, null, tint = Color.Red.copy(0.6f), modifier = Modifier.size(20.dp))
             }
         }
     }
 }
 
 @Composable
-fun PopularRecipeCard(recipe: RecipeItem) {
-    Surface(color = Color.White, shape = RoundedCornerShape(24.dp), shadowElevation = 4.dp, modifier = Modifier.width(170.dp)) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Box(modifier = Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(18.dp)).background(AlayaPurpleLgt.copy(alpha = 0.4f))) {
-                Icon(Icons.Default.Restaurant, null, modifier = Modifier.size(40.dp).align(Alignment.Center), tint = AlayaPurple)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(recipe.name, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = AlayaDarkText, maxLines = 1)
-            Text(recipe.type, fontSize = 12.sp, color = AlayaMutedText)
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(recipe.price, fontWeight = FontWeight.Black, color = AlayaPurple, fontSize = 14.sp)
-                IconButton(onClick = { }, modifier = Modifier.size(32.dp).background(AlayaPurple, RoundedCornerShape(10.dp))) {
-                    Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(20.dp))
+fun PopularMealCard(name: String, imageRes: Int) {
+    Surface(
+        modifier = Modifier.size(140.dp, 175.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+    ) {
+        Column {
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = name,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(115.dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Text(name, modifier = Modifier.padding(12.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+fun SelectionGrid(items: List<String>, selected: List<String>, onSelect: (String) -> Unit, color: Color) {
+    Column {
+        items.chunked(3).forEach { row ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                row.forEach { item ->
+                    Row(modifier = Modifier.weight(1f).clickable { onSelect(item) }, verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = selected.contains(item),
+                            onCheckedChange = { onSelect(item) },
+                            colors = CheckboxDefaults.colors(checkedColor = color),
+                            modifier = Modifier.scale(0.8f)
+                        )
+                        Text(item, fontSize = 10.sp)
+                    }
                 }
             }
         }
     }
 }
-
-data class RecipeItem(val name: String, val type: String, val price: String)
