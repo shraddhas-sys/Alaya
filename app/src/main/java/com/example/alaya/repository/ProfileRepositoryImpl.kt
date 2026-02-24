@@ -8,8 +8,6 @@ class ProfileRepositoryImpl : ProfileRepository {
 
     override fun getUserProfile(uid: String, onResult: (User?) -> Unit) {
         db.child(uid).get().addOnSuccessListener { snapshot ->
-            // Firebase le automatically JSON data lai User model ma convert garcha
-            // Yesko lagi User model ma default values huna parcha (val name: String = "")
             val user = snapshot.getValue(User::class.java)
             onResult(user)
         }.addOnFailureListener {
@@ -17,7 +15,6 @@ class ProfileRepositoryImpl : ProfileRepository {
         }
     }
 
-    // Tapaiko update logic pani yaha hunu parcha
     override fun updateUsername(uid: String, newName: String, onComplete: (Boolean) -> Unit) {
         db.child(uid).child("name").setValue(newName)
             .addOnCompleteListener { onComplete(it.isSuccessful) }
