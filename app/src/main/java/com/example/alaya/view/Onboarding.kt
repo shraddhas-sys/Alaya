@@ -58,7 +58,7 @@ fun OnboardingUI(navController: NavHostController) {
         "Learn postures like Warrior !!"
     )
 
-    var currentPage by remember { mutableStateOf(0) }
+    var currentPage by remember { mutableIntStateOf(0) }
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(Color(0xFFFFF8E1), Color(0xFFD6C1FF))
@@ -99,7 +99,7 @@ fun OnboardingUI(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔹 Page Indicator
+            // Indicates the page part
             Row(horizontalArrangement = Arrangement.Center) {
                 pages.forEachIndexed { index, _ ->
                     Box(
@@ -114,7 +114,7 @@ fun OnboardingUI(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔹 NEXT / GET STARTED BUTTON
+            // Next and Get started buttons
             Button(
                 onClick = {
                     if (currentPage < pages.lastIndex) {
