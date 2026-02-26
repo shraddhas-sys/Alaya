@@ -1,6 +1,10 @@
 package com.example.alaya.view
 
+import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -31,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -50,165 +56,181 @@ import com.example.alaya.view.ui.theme.DeepPurple
 import com.example.alaya.view.ui.theme.LightBlue
 import com.example.alaya.viewmodel.AuthViewModel
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.navigation.compose.rememberNavController
+import com.example.alaya.ui.theme.AlayaDeepPurple
+import com.example.alaya.ui.theme.AlayaNudeCream
+import com.example.alaya.ui.theme.AlayaTan
+import com.example.alaya.view.ui.theme.AlayaTheme
 
-
+class Registration : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            AlayaTheme {
+                val navController = rememberNavController()
+                RegistrationScreen(navController = navController)
+            }
+        }
+    }
+}
 @Composable
 fun RegistrationScreen(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
-        val context = LocalContext.current
+    val context = LocalContext.current
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rePassword by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
 
-    val deepLavender = Color(0xFF4B307A)
-    val midLavender = Color(0xFF7B5CAB)
-    val lightLavenderBg = Color(0xFFF3E5F5)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(deepLavender, midLavender)))
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(AlayaDeepPurple)) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(color = Color.White.copy(alpha = 0.12f), radius = 350f, center = center.copy(x = 100f, y = 150f))
-            drawCircle(color = Color.White.copy(alpha = 0.08f), radius = 220f, center = center.copy(x = 900f, y = 450f))
+            val path = Path().apply {
+                moveTo(size.width, size.height * 0.18f)
+                cubicTo(
+                    x1 = size.width * 0.7f, y1 = size.height * 0.22f,
+                    x2 = size.width * 0.2f, y2 = size.height * 0.32f,
+                    x3 = 0f, y3 = size.height * 0.38f
+                )
+                lineTo(0f, size.height)
+                lineTo(size.width, size.height)
+                close()
+            }
+            drawPath(path = path, color = AlayaNudeCream)
         }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(100.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
 
-            Column(modifier = Modifier.padding(horizontal = 35.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 35.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
-                    "Create Your\nAccount",
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    lineHeight = 42.sp
+                    text = "Begin Your",
+                    style = TextStyle(
+                        fontSize = 32.sp,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = 1.sp
+                    )
+                )
+                Text(
+                    text = "Journey",
+                    style = TextStyle(
+                        fontSize = 42.sp,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                )
+                Text(
+                    text = "with Alaya",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily.Default,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 1.sp
+                    )
+                )
+            }
+
+           // input Boxes
+            Spacer(modifier = Modifier.height(180.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 35.dp)
+            ) {
+                AestheticIconInputField(
+                    label = "User Name",
+                    value = fullName,
+                    onValueChange = { fullName = it },
+                    icon = Icons.Default.Person,
+                    labelColor = AlayaTan
+                )
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                AestheticIconInputField(
+                    label = "Email Address",
+                    value = email,
+                    onValueChange = { email = it },
+                    icon = Icons.Default.Email,
+                    labelColor = AlayaTan
+                )
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                AestheticIconInputField(
+                    label = "Password",
+                    value = password,
+                    onValueChange = { password = it },
+                    icon = Icons.Default.Lock,
+                    isPassword = true,
+                    labelColor = AlayaTan
+                )
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                AestheticIconInputField(
+                    label = "Confirm Password",
+                    value = rePassword,
+                    onValueChange = { rePassword = it },
+                    icon = Icons.Default.CheckCircle,
+                    isPassword = true,
+                    labelColor = AlayaTan
                 )
             }
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-                color = lightLavenderBg
+           // Button
+            Button(
+                onClick = { },
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .height(58.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AlayaDeepPurple)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 30.dp, vertical = 35.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ModernInput(label = "Full Name", value = fullName, onValueChange = { fullName = it })
-                    ModernInput(label = "Email Address", value = email, onValueChange = { email = it })
-                    ModernInput(label = "Password", value = password, onValueChange = { password = it }, isPass = true)
-                    ModernInput(label = "Confirm Password", value = rePassword, onValueChange = { rePassword = it }, isPass = true)
-
-                    Spacer(modifier = Modifier.height(45.dp))
-
-                    Button(
-                        onClick = {
-                            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                                Toast.makeText(context, "Please fill all fields!", Toast.LENGTH_SHORT).show()
-                            } else if (password != rePassword) {
-                                Toast.makeText(context, "Passwords do not match!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                isLoading = true
-                                authViewModel.register(fullName, email, password) { success, message ->
-                                    isLoading = false
-                                    if (success) {
-                                        Toast.makeText(context, "Registration Successful!", Toast.LENGTH_SHORT).show()
-                                        navController.navigate("login") {
-                                            popUpTo("registration") { inclusive = true }
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "Error: $message", Toast.LENGTH_LONG).show()
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(58.dp),
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        contentPadding = PaddingValues(),
-                        enabled = !isLoading
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = Brush.horizontalGradient(listOf(deepLavender, midLavender)),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isLoading) {
-                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                            } else {
-                                Text("SIGN UP", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(35.dp))
-                    Row(
-                        modifier = Modifier.padding(bottom = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Already have an account? ", color = Color.Gray, fontSize = 14.sp)
-                        Text(
-                            "Sign In",
-                            color = deepLavender,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 14.sp,
-                            modifier = Modifier.clickable { navController.navigate("login") }
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Join the Ritual", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
             }
-        }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModernInput(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    isPass: Boolean = false
-) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Text(
-            text = label,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF4B307A),
-            fontSize = 14.sp,
-            modifier = Modifier.padding(start = 2.dp, bottom = 6.dp)
-        )
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color(0xFF7B5CAB),
-                unfocusedIndicatorColor = Color.LightGray.copy(alpha = 0.6f),
-                cursorColor = Color(0xFF4B307A)
-            ),
-            visualTransformation = if (isPass) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            trailingIcon = {
-                val icon = if (isPass) Icons.Default.Lock else Icons.Default.CheckCircle
-                Icon(icon, null, tint = Color.Gray.copy(0.7f), modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.height(25.dp))
+
+           // this is bottom link
+            Row {
+                Text("Already part of Alaya? ", color = Color.Gray, fontSize = 14.sp)
+                Text(
+                    text = "Sign In",
+                    color = AlayaTan,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { navController.navigate("login") }
+                )
             }
-        )
+
+            Spacer(modifier = Modifier.height(40.dp))
+        }
     }
 }
