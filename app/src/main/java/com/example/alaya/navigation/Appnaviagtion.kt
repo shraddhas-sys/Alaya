@@ -1,24 +1,13 @@
 package com.example.alaya.navigation
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavHostController
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.alaya.view.*
+import com.example.alaya.view.AlayaNotificationScreen
+import com.example.alaya.viewmodel.DashboardViewModel
 
 object Routes {
     const val SPLASH = "splash"
@@ -26,15 +15,17 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val FORGOT = "forgot"
-
     const val DASHBOARD = "dashboard"
     const val PLANNER = "planner"
     const val MEALS = "meals"
+    const val PROFILE = "profile"
+    const val NOTIFICATIONS = "notifications"
 }
 
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
+    val dashboardViewModel: DashboardViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -45,16 +36,32 @@ fun AppNavGraph() {
         composable(Routes.LOGIN) { LoginUI(navController) }
         composable(Routes.REGISTER) { RegistrationScreen(navController) }
         composable(Routes.FORGOT) { Forgot(navController) }
-        composable(Routes.DASHBOARD) { DashboardUI(navController) }
+        composable(Routes.DASHBOARD) {
+            DashboardUI(navController, dashboardViewModel)
+        }
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Routes.PLANNER) {
             PlannerScreen(onBack = { navController.popBackStack() })
         }
+
         composable(Routes.MEALS) {
-            MealPlannerScreen(navController = navController)
+            MealPlannerContent(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.NOTIFICATIONS) {
+            AlayaNotificationScreen(
+                navController = navController,
+                viewModel = dashboardViewModel
+            )
         }
     }
-
-
 }
-
