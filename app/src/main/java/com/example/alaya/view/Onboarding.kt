@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,16 +27,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.alaya.R
 import com.example.alaya.navigation.Routes
+import androidx.core.content.edit
+import com.example.alaya.ui.theme.AlayaDeepPurple
+import com.example.alaya.ui.theme.primaryColor
+import com.example.alaya.view.ui.theme.AlayaTheme
 
 class Onboarding : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
-            OnboardingUI(navController = navController)
+            AlayaTheme {
+                val navController = rememberNavController()
+                OnboardingUI(navController = navController)
+            }
         }
-
     }
 }
 
@@ -61,7 +65,10 @@ fun OnboardingUI(navController: NavHostController) {
     var currentPage by remember { mutableIntStateOf(0) }
 
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(Color(0xFFFFF8E1), Color(0xFFD6C1FF))
+        colors = listOf(
+            Color(0xFFFFF8E1),
+            Color(0xFFD6C1FF)
+        )
     )
 
     Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
@@ -75,74 +82,73 @@ fun OnboardingUI(navController: NavHostController) {
             Image(
                 painter = painterResource(id = pages[currentPage]),
                 contentDescription = "Yoga Illustration",
-                modifier = Modifier.size(250.dp)
+                modifier = Modifier.size(280.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
+            // Title
             Text(
                 text = pageTitles[currentPage],
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF5B3E96),
-                textAlign = TextAlign.Center
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                color = primaryColor,
+                textAlign = TextAlign.Center,
+                lineHeight = 32.sp
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Subtitle
             Text(
                 text = pageSubtitles[currentPage],
-                fontSize = 14.sp,
-                color = Color.Gray,
+                fontSize = 15.sp,
+                color = Color.DarkGray.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // Indicates the page part
+            // Page Indicators
             Row(horizontalArrangement = Arrangement.Center) {
                 pages.forEachIndexed { index, _ ->
+                    val isSelected = index == currentPage
                     Box(
                         modifier = Modifier
-                            .size(if (index == currentPage) 12.dp else 8.dp)
+                            .height(8.dp)
+                            .width(if (isSelected) 24.dp else 8.dp)
                             .clip(CircleShape)
-                            .background(if (index == currentPage) Color(0xFF8E44AD) else Color.Gray)
+                            .background(if (isSelected) primaryColor else Color.Gray.copy(alpha = 0.5f))
                     )
                     if (index != pages.lastIndex) Spacer(modifier = Modifier.width(8.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Next and Get started buttons
+            Spacer(modifier = Modifier.height(40.dp))
             Button(
                 onClick = {
                     if (currentPage < pages.lastIndex) {
                         currentPage++
                     } else {
-                        sharedPreferences.edit().putBoolean("finished", true).apply()
+                        sharedPreferences.edit { putBoolean("finished", true) }
                         navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.ONBOARDING) { inclusive = true }
                         }
                     }
                 },
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(55.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8E44AD))
+                    .fillMaxWidth(0.7f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
             ) {
                 Text(
                     text = if (currentPage < pages.lastIndex) "Next" else "Get Started",
                     color = Color.White,
-                    fontSize = 18.sp
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
 }
-
-
-
-
-
