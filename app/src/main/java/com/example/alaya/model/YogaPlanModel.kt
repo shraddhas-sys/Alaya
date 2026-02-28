@@ -1,8 +1,8 @@
 package com.example.alaya.model
 
 data class YogaPlanModel(
-    val id: String = "",        // Document ID from Firebase
-    val userId: String = "",    // The UID of the user who created it
+    val id: String = "",
+    val userId: String = "",
     val date: String = "",
     val yogaType: String = "",
     val duration: String = "",
