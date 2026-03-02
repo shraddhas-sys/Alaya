@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,19 +26,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import com.example.alaya.R
 import com.example.alaya.model.LocalMealItem
-import com.example.alaya.ui.theme.AlayaLavender
-import com.example.alaya.ui.theme.LavenderLight
-import com.example.alaya.ui.theme.SoftCream
+import com.example.alaya.repository.MealRepository
+import com.example.alaya.repository.MealRepositoryImpl
+import com.example.alaya.ui.theme.*
 import com.example.alaya.view.ui.theme.AlayaTheme
 import com.example.alaya.viewmodel.MealViewModel
-import com.example.alaya.R
-
 
 class MealPlannerScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,51 +53,51 @@ class MealPlannerScreen : ComponentActivity() {
     }
 }
 
-
+//Factory class
+class MealViewModelFactory(private val repo: MealRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MealViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MealViewModel(repo) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlannerContent(
     onBack: () -> Unit,
-    vm: MealViewModel = viewModel()
+    vm: MealViewModel = viewModel(
+        factory = MealViewModelFactory(MealRepositoryImpl())
+    )
 ) {
+    // States for form inputs
     var mealName by remember { mutableStateOf("") }
     var selectedMealType by remember { mutableStateOf("Lunch") }
     var proteinValue by remember { mutableFloatStateOf(75f) }
+
     val addedMeals by vm.meals.collectAsState(initial = emptyList())
     val mealTypes = listOf("Breakfast", "Dinner", "Lunch", "Snack", "Brunch", "Dessert")
 
+
+    val primaryColor = AlayaDeepPurple
+    val backgroundColor = AlayaNudeCream
+
     Scaffold(
-        containerColor = SoftCream,
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            color = Color.White,
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, AlayaLavender.copy(0.2f))
-                        ) {
-                            Text(
-                                text = "EAT",
-                                color = AlayaLavender,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
-                                fontWeight = FontWeight.Black,
-                                fontSize = 14.sp
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "PLANNER",
-                            fontWeight = FontWeight.ExtraBold,
-                            color = AlayaLavender,
-                            fontSize = 18.sp,
-                            letterSpacing = 1.sp
-                        )
-                    }
+                    Text(
+                        text = "MEAL PLANNER",
+                        fontWeight = FontWeight.Black,
+                        color = primaryColor,
+                        fontSize = 18.sp
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AlayaLavender)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = primaryColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -110,30 +109,37 @@ fun MealPlannerContent(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 22.dp)
         ) {
             Spacer(modifier = Modifier.height(15.dp))
-            Text("POPULAR CHOICES", fontSize = 11.sp, fontWeight = FontWeight.Black, color = AlayaLavender.copy(0.7f))
+            Text("POPULAR CHOICES", fontSize = 11.sp, fontWeight = FontWeight.Black, color = primaryColor.copy(0.6f))
 
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(15.dp),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 val popular = listOf(
-                    Pair("Oatmeal", R.drawable.img_10),
-                    Pair("Salad", R.drawable.img_11)
+                    Pair("Yogurt Bowl", R.drawable.img_10),
+                    Pair("Avocado and Egg", R.drawable.img_11)
                 )
                 items(popular) { (name, resId) ->
-                    PopularMealCard(name, resId)
+                    PopularMealCard(name, resId, primaryColor)
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Surface(color = Color.White, shape = RoundedCornerShape(28.dp), border = BorderStroke(1.dp, LavenderLight)) {
+            // Main card for adding a new meal
+
+            Surface(
+                color = Color.White,
+                shape = RoundedCornerShape(28.dp),
+                shadowElevation = 0.5.dp
+            ) {
                 Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    // Meal name input
                     Column {
-                        Text("MEAL NAME", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AlayaLavender)
+                        Text("MEAL NAME", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryColor)
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = mealName,
@@ -142,30 +148,31 @@ fun MealPlannerContent(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = AlayaLavender,
-                                unfocusedBorderColor = LavenderLight,
-                                focusedContainerColor = SoftCream.copy(0.3f),
-                                unfocusedContainerColor = SoftCream.copy(0.3f)
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = primaryColor.copy(0.1f)
                             ),
                             singleLine = true
                         )
                     }
 
-                    SelectionGrid(mealTypes, listOf(selectedMealType), { selectedMealType = it }, AlayaLavender)
+                    // grid to pick meal category
+                    SelectionGrid(mealTypes, listOf(selectedMealType), { selectedMealType = it }, primaryColor)
 
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("PROTEIN TARGET", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AlayaLavender)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("PROTEIN TARGET", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryColor)
                             Spacer(modifier = Modifier.weight(1f))
-                            Surface(color = SoftCream, shape = CircleShape) {
-                                Text("${proteinValue.toInt()}g", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontWeight = FontWeight.Bold, color = AlayaLavender, fontSize = 12.sp)
-                            }
+                            Text("${proteinValue.toInt()}g", fontWeight = FontWeight.Black, color = primaryColor)
                         }
                         Slider(
                             value = proteinValue,
                             onValueChange = { proteinValue = it },
                             valueRange = 0f..150f,
-                            colors = SliderDefaults.colors(thumbColor = AlayaLavender, activeTrackColor = AlayaLavender, inactiveTrackColor = SoftCream)
+                            colors = SliderDefaults.colors(
+                                thumbColor = primaryColor,
+                                activeTrackColor = primaryColor,
+                                inactiveTrackColor = primaryColor.copy(0.1f)
+                            )
                         )
                     }
 
@@ -176,82 +183,99 @@ fun MealPlannerContent(
                                 mealName = ""
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AlayaLavender),
-                        shape = RoundedCornerShape(16.dp)
-                    ) { Text("ADD TO PLAN", fontWeight = FontWeight.Bold, color = Color.White) }
+                        modifier = Modifier.fillMaxWidth().height(58.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+                        shape = RoundedCornerShape(18.dp)
+                    ) { Text("ADD TO PLAN", fontWeight = FontWeight.ExtraBold, color = Color.White) }
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text("TODAY'S SCHEDULE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+            Spacer(modifier = Modifier.height(35.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(4.dp, 16.dp).clip(CircleShape).background(primaryColor))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("TODAY'S SCHEDULE", fontSize = 14.sp, fontWeight = FontWeight.Black, color = primaryColor)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-            addedMeals.forEach { item ->
-                AddedMealCard(item, AlayaLavender, LavenderLight, onDelete = { vm.deleteMeal(item.id) })
-                Spacer(modifier = Modifier.height(12.dp))
+            if (addedMeals.isEmpty()) {
+                Text("No meals added yet.", modifier = Modifier.padding(vertical = 20.dp), color = Color.Gray, fontSize = 14.sp)
+            } else {
+                addedMeals.forEach { meal ->
+                    AddedMealCard(
+                        item = meal,
+                        themeColor = primaryColor,
+                        onDelete = { vm.deleteMeal(meal.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
-
+// Single meal item row layout
 @Composable
-fun AddedMealCard(item: LocalMealItem, themeColor: Color, lightColor: Color, onDelete: () -> Unit) {
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, lightColor)) {
+fun AddedMealCard(item: LocalMealItem, themeColor: Color, onDelete: () -> Unit) {
+    Surface(
+        color = Color.White,
+        shape = RoundedCornerShape(22.dp),
+        shadowElevation = 0.5.dp
+    ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(lightColor), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Restaurant, null, tint = themeColor, modifier = Modifier.size(18.dp))
+            Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(themeColor.copy(0.08f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Restaurant, null, tint = themeColor, modifier = Modifier.size(20.dp))
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(item.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AlayaTextDark)
                 Text(item.type, fontSize = 12.sp, color = Color.Gray)
             }
-            Text(item.protein, fontWeight = FontWeight.Black, fontSize = 12.sp, color = themeColor, modifier = Modifier.padding(end = 8.dp))
+            Text(item.protein, fontWeight = FontWeight.Black, fontSize = 13.sp, color = themeColor)
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, null, tint = Color.Red.copy(0.6f), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Delete, null, tint = Color.Red.copy(0.4f), modifier = Modifier.size(20.dp))
             }
         }
     }
 }
-
+// PopularMealCard
 @Composable
-fun PopularMealCard(name: String, imageRes: Int) {
+fun PopularMealCard(name: String, imageRes: Int, themeColor: Color) {
     Surface(
-        modifier = Modifier.size(140.dp, 175.dp),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.size(145.dp, 185.dp),
+        shape = RoundedCornerShape(26.dp),
         color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        shadowElevation = 0.5.dp
     ) {
         Column {
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(115.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+                modifier = Modifier.fillMaxWidth().height(125.dp).clip(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)),
                 contentScale = ContentScale.Crop
             )
-            Text(name, modifier = Modifier.padding(12.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(name, modifier = Modifier.padding(14.dp), fontWeight = FontWeight.Black, fontSize = 14.sp, color = themeColor)
         }
     }
 }
-
+// Selection grid
 @Composable
 fun SelectionGrid(items: List<String>, selected: List<String>, onSelect: (String) -> Unit, color: Color) {
     Column {
         items.chunked(3).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 row.forEach { item ->
-                    Row(modifier = Modifier.weight(1f).clickable { onSelect(item) }, verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f).clickable { onSelect(item) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Checkbox(
                             checked = selected.contains(item),
                             onCheckedChange = { onSelect(item) },
                             colors = CheckboxDefaults.colors(checkedColor = color),
-                            modifier = Modifier.scale(0.8f)
+                            modifier = Modifier.scale(0.85f)
                         )
-                        Text(item, fontSize = 10.sp)
+                        Text(item, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if(selected.contains(item)) color else Color.Gray)
                     }
                 }
             }

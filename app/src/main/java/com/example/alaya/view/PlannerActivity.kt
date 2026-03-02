@@ -1,71 +1,42 @@
 package com.example.alaya.view
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alaya.ui.theme.AlayaTextMuted
-import com.example.alaya.ui.theme.AlayaWhite
-import com.example.alaya.view.ui.theme.AlayaCreamBg
-import com.example.alaya.view.ui.theme.AlayaPurpleLight
-import com.example.alaya.view.ui.theme.AlayaPurplePrimary
-import com.example.alaya.view.ui.theme.AlayaTextDark
-import com.example.alaya.view.ui.theme.AlayaTheme
-import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.alaya.model.YogaPlanModel
 import com.example.alaya.repository.PlannerRepoImpl
-import com.example.alaya.ui.theme.RichCream
+import com.example.alaya.ui.theme.AlayaDeepPurple
+import com.example.alaya.ui.theme.AlayaNudeCream
+import com.example.alaya.view.ui.theme.AlayaTheme
+import com.example.alaya.viewmodel.DashboardViewModel
 import com.example.alaya.viewmodel.PlannerViewModel
 import com.example.alaya.viewmodel.PlannerViewModelFactory
 import java.text.SimpleDateFormat
@@ -84,7 +55,6 @@ class PlannerActivity : ComponentActivity() {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlannerScreen(
@@ -92,19 +62,23 @@ fun PlannerScreen(
     onBack: () -> Unit,
     viewModel: PlannerViewModel = viewModel(
         factory = PlannerViewModelFactory(PlannerRepoImpl())
-    )
+    ),
+    dashboardViewModel: DashboardViewModel = viewModel()
 ) {
+    // Collect plans from ViewModel
     val savedPlans by viewModel.plans.collectAsState()
+    val context = LocalContext.current
 
     var date by remember { mutableStateOf("") }
     var yogaType by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
-    // duration part
+    // Time picker
     var selectedHour by remember { mutableStateOf("0") }
     var selectedMin by remember { mutableStateOf("30") }
     var selectedSec by remember { mutableStateOf("0") }
 
+    // Date picker and dropdown visibility states
     val datePickerState = rememberDatePickerState()
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -112,15 +86,14 @@ fun PlannerScreen(
     val yogaOptions = listOf("Vinyasa", "Hatha", "Yin Yoga", "Ashtanga", "Restorative")
     val filteredOptions = yogaOptions.filter { it.contains(yogaType, ignoreCase = true) }
 
-
     Scaffold(
-        containerColor = RichCream,
+        containerColor = AlayaNudeCream,
         topBar = {
             TopAppBar(
-                title = { Text("Yoga Planner", fontWeight = FontWeight.Bold, color = AlayaPurplePrimary) },
+                title = { Text("Yoga Planner", fontWeight = FontWeight.ExtraBold, color = AlayaDeepPurple) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AlayaPurplePrimary)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AlayaDeepPurple)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -135,52 +108,51 @@ fun PlannerScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(10.dp))
-            Text("NEW PLAN", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
-            Text("Schedule a session", fontSize = 22.sp, fontWeight = FontWeight.Black, color = AlayaTextDark)
+            Text("NEW PLAN", fontSize = 11.sp, fontWeight = FontWeight.Black, color = AlayaDeepPurple.copy(alpha = 0.6f))
+            Text("Schedule a session", fontSize = 24.sp, fontWeight = FontWeight.Black, color = AlayaDeepPurple)
             Spacer(modifier = Modifier.height(16.dp))
 
             Surface(
                 color = Color.White,
-                shape = RoundedCornerShape(24.dp),
-                shadowElevation = 2.dp,
+                shape = RoundedCornerShape(28.dp),
+                shadowElevation = 0.5.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
+                   // date section
                     Column {
-                        Text("DATE", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
+                        Text("DATE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                         OutlinedButton(
                             onClick = { showDatePicker = true },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, AlayaPurpleLight.copy(alpha = 0.5f)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AlayaTextDark)
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, AlayaDeepPurple.copy(alpha = 0.15f)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AlayaDeepPurple)
                         ) {
-                            Text(date.ifEmpty { "Select Date" })
+                            Text(date.ifEmpty { "Select Date" }, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.weight(1f))
-                            Icon(Icons.Default.DateRange, contentDescription = null, tint = AlayaPurplePrimary)
+                            Icon(Icons.Default.DateRange, contentDescription = null, tint = AlayaDeepPurple)
                         }
                     }
 
+                  // yoga type section
                     Column {
-                        Text("YOGA TYPE", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
+                        Text("YOGA TYPE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                         ExposedDropdownMenuBox(
                             expanded = typeExpanded,
                             onExpandedChange = { typeExpanded = !typeExpanded }
                         ) {
                             TextField(
                                 value = yogaType,
-                                onValueChange = {
-                                    yogaType = it
-                                    typeExpanded = true
-                                },
-                                placeholder = { Text("Select or Type", fontSize = 14.sp) },
+                                onValueChange = { yogaType = it; typeExpanded = true },
+                                placeholder = { Text("Select style...", fontSize = 14.sp) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = AlayaPurplePrimary,
-                                    unfocusedIndicatorColor = AlayaPurpleLight.copy(alpha = 0.5f)
+                                    focusedIndicatorColor = AlayaDeepPurple,
+                                    unfocusedIndicatorColor = AlayaDeepPurple.copy(alpha = 0.1f)
                                 ),
                                 modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
@@ -188,11 +160,8 @@ fun PlannerScreen(
                                 ExposedDropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
                                     filteredOptions.forEach { option ->
                                         DropdownMenuItem(
-                                            text = { Text(option) },
-                                            onClick = {
-                                                yogaType = option
-                                                typeExpanded = false
-                                            }
+                                            text = { Text(option, fontWeight = FontWeight.Medium) },
+                                            onClick = { yogaType = option; typeExpanded = false }
                                         )
                                     }
                                 }
@@ -200,56 +169,76 @@ fun PlannerScreen(
                         }
                     }
 
+                   // duration section
                     Column {
-                        Text("DURATION", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            EditableTimeDropdown(label = "Hrs", options = (0..12).map { it.toString() }, value = selectedHour, onValueChange = { selectedHour = it }, modifier = Modifier.weight(1f))
+                        Text("DURATION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            EditableTimeDropdown(label = "Hrs", options = (0..5).map { it.toString() }, value = selectedHour, onValueChange = { selectedHour = it }, modifier = Modifier.weight(1f))
                             EditableTimeDropdown(label = "Min", options = listOf("0", "15", "30", "45"), value = selectedMin, onValueChange = { selectedMin = it }, modifier = Modifier.weight(1f))
                             EditableTimeDropdown(label = "Sec", options = listOf("0", "30"), value = selectedSec, onValueChange = { selectedSec = it }, modifier = Modifier.weight(1f))
                         }
                     }
 
-                  //  Notes part
-                    PlannerInput(label = "NOTES (OPTIONAL)", value = notes, onValueChange = { notes = it }, placeholder = "e.g., Focus on hips")
+                    PlannerInput(label = "NOTES (OPTIONAL)", value = notes, onValueChange = { notes = it }, placeholder = "Focus on breathing...")
 
+                    // notification logic part for planned session
                     Button(
                         onClick = {
                             if (date.isNotEmpty() && yogaType.isNotEmpty()) {
                                 val finalDuration = "${selectedHour}h ${selectedMin}m ${selectedSec}s"
                                 viewModel.savePlan(date, yogaType, finalDuration, notes)
-                                // Reset fields
+                                dashboardViewModel.sendNotification(
+                                    title = "New Yoga Session Planned! ️",
+                                    message = "You have scheduled $yogaType for $date."
+                                )
+
+                                Toast.makeText(context, "Session Scheduled! ", Toast.LENGTH_SHORT).show()
+
                                 date = ""; yogaType = ""; notes = ""; selectedHour = "0"; selectedMin = "30"; selectedSec = "0"
+                            } else {
+                                Toast.makeText(context, "Please fill date and yoga type!", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(58.dp),
+                        modifier = Modifier.fillMaxWidth().height(60.dp),
                         shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AlayaPurplePrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = AlayaDeepPurple)
                     ) {
-                        Text("ADD TO PLANNER", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                        Text("ADD TO PLANNER", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Color.White)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(35.dp))
-            Text("UPCOMING SESSIONS", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
-            Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(4.dp, 16.dp).clip(CircleShape).background(AlayaDeepPurple))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("UPCOMING SESSIONS", fontSize = 14.sp, fontWeight = FontWeight.Black, color = AlayaDeepPurple)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (savedPlans.isEmpty()) {
-                Text("No sessions planned yet.", modifier = Modifier.padding(vertical = 20.dp), color = AlayaTextMuted)
+                Text("Your schedule is empty.", modifier = Modifier.padding(vertical = 20.dp), color = Color.Gray, fontSize = 14.sp)
             } else {
                 savedPlans.forEach { plan ->
-                    DateCard(plan = plan, modifier = Modifier.fillMaxWidth())
+                    DateCard(
+                        plan = plan,
+                        modifier = Modifier.fillMaxWidth(),
+                        onDelete = { planToDelete -> viewModel.deletePlan(planToDelete) },
+                        onComplete = { completedPlan ->
+                            dashboardViewModel.onPlanComplete(completedPlan.yogaType)
+
+                            viewModel.deletePlan(completedPlan)
+
+                            Toast.makeText(context, "Great job! Plan completed ✅", Toast.LENGTH_SHORT).show()
+                        }
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 
-    // the dates are shown to pick a date picker
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -260,29 +249,71 @@ fun PlannerScreen(
                     } ?: ""
                     date = selectedDate
                     showDatePicker = false
-                }) { Text("OK", color = AlayaPurplePrimary) }
+                }) { Text("OK", color = AlayaDeepPurple, fontWeight = FontWeight.Bold) }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel", color = Color.Gray) } }
         ) { DatePicker(state = datePickerState) }
     }
 }
 
+@Composable
+fun DateCard(
+    plan: YogaPlanModel,
+    modifier: Modifier,
+    onDelete: (YogaPlanModel) -> Unit,
+    onComplete: (YogaPlanModel) -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        color = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 0.5.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(plan.date, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.Gray)
+                Text(plan.yogaType, fontSize = 18.sp, fontWeight = FontWeight.Black, color = AlayaDeepPurple)
+                if (plan.notes.isNotEmpty()) {
+                    Text(plan.notes, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+               // success tick
+                IconButton(onClick = { onComplete(plan) }) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Complete",
+                        tint = Color(0xFF4CAF50),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(plan.duration, fontSize = 12.sp, color = AlayaDeepPurple, fontWeight = FontWeight.Bold)
+                    IconButton(onClick = { onDelete(plan) }, modifier = Modifier.size(30.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// dropdown for picking time units
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditableTimeDropdown(
-    label: String,
-    options: List<String>,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun EditableTimeDropdown(label: String, options: List<String>, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
-        Text(label, fontSize = 10.sp, color = AlayaTextMuted, fontWeight = FontWeight.Bold)
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
+        Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
             TextField(
                 value = value,
                 onValueChange = { onValueChange(it) },
@@ -290,22 +321,16 @@ fun EditableTimeDropdown(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = AlayaPurplePrimary,
-                    unfocusedIndicatorColor = AlayaPurpleLight.copy(alpha = 0.3f)
+                    focusedIndicatorColor = AlayaDeepPurple,
+                    unfocusedIndicatorColor = AlayaDeepPurple.copy(alpha = 0.1f)
                 ),
-                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AlayaDeepPurple),
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            onValueChange(option)
-                            expanded = false
-                        }
-                    )
+                    DropdownMenuItem(text = { Text(option) }, onClick = { onValueChange(option); expanded = false })
                 }
             }
         }
@@ -315,40 +340,19 @@ fun EditableTimeDropdown(
 @Composable
 fun PlannerInput(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
     Column {
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = AlayaTextMuted)
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, fontSize = 14.sp, color = AlayaTextMuted) },
+            placeholder = { Text(placeholder, fontSize = 14.sp, color = Color.Gray.copy(alpha = 0.5f)) },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = AlayaPurplePrimary,
-                unfocusedIndicatorColor = AlayaPurpleLight.copy(alpha = 0.5f)
+                focusedIndicatorColor = AlayaDeepPurple,
+                unfocusedIndicatorColor = AlayaDeepPurple.copy(alpha = 0.1f)
             ),
             singleLine = true
         )
-    }
-}
-
-@Composable
-fun DateCard(plan: YogaPlanModel, modifier: Modifier) {
-    Surface(
-        modifier = modifier,
-        color = Color.White,
-        shape = RoundedCornerShape(18.dp),
-        shadowElevation = 1.dp
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text(plan.date, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AlayaTextDark)
-                Text(plan.duration, fontSize = 12.sp, color = AlayaPurplePrimary, fontWeight = FontWeight.Bold)
-            }
-            Text(plan.yogaType, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AlayaPurplePrimary)
-            if (plan.notes.isNotEmpty()) {
-                Text(plan.notes, fontSize = 11.sp, color = AlayaTextMuted)
-            }
-        }
     }
 }
