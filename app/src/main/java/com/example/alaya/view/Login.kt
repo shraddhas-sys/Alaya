@@ -5,30 +5,22 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -63,6 +55,8 @@ class Login: ComponentActivity() {
 fun LoginUI(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
+
+    // Local state for user
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -72,6 +66,7 @@ fun LoginUI(navController: NavHostController) {
             .background(AlayaDeepPurple)
             .statusBarsPadding()
     ) {
+        // Upper section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -109,6 +104,7 @@ fun LoginUI(navController: NavHostController) {
                     .background(AlayaTan)
             )
         }
+        // Lower section
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -175,7 +171,7 @@ fun LoginUI(navController: NavHostController) {
                     },
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AlayaDeepPurple) // म्याचिङ पर्पल बटन
+                    colors = ButtonDefaults.buttonColors(containerColor = AlayaDeepPurple)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Enter Portal", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
@@ -243,7 +239,7 @@ fun AestheticIconInputField(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.weight(1f), // यसले बाँकी ठाउँ लिन्छ
+                modifier = Modifier.weight(1f),
                 textStyle = TextStyle(
                     fontSize = 16.sp,
                     color = Color(0xFF2D2D2D),
