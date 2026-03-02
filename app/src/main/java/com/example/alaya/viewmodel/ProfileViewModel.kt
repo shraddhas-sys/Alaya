@@ -4,45 +4,65 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.alaya.repository.ProfileRepository
+import com.example.alaya.repository.ProfileRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(
+    private val repository: ProfileRepository = ProfileRepositoryImpl()
+) : ViewModel() {
+
     private val auth = FirebaseAuth.getInstance()
-    private val dbRef = FirebaseDatabase.getInstance().getReference("users")
 
     var userName by mutableStateOf("Loading...")
     var userEmail by mutableStateOf("Loading...")
 
-    init {
-        fetchUserProfile()
-    }
+    init { fetchUserProfile() }
 
     fun fetchUserProfile() {
         val uid = auth.currentUser?.uid
         if (uid != null) {
-            dbRef.child(uid).get().addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    userName = snapshot.child("name").value?.toString() ?: "No Name"
-                    userEmail = snapshot.child("email").value?.toString() ?: "No Email"
-                } else {
-                    userName = "Profile Empty"
-                    userEmail = "No Email Found"
-                }
-            }.addOnFailureListener {
-                it.printStackTrace()
-                userName = "Connection Error"
+            repository.getUserProfile(uid) { user ->
+                userName = user?.name ?: "No Name"
+                userEmail = user?.email ?: "No Email Found"
             }
-        } else {
-            userName = "Guest User"
-            userEmail = "Not Logged In"
+        }
+    }
+
+    fun updateName(newName: String) {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            repository.updateUsername(uid, newName).onSuccess {
+                userName = newName
+            }
+        }
+    }
+
+    fun updatePassword(newPwd: String) {
+        viewModelScope.launch {
+            repository.updatePassword(newPwd)
+        }
+    }
+    fun deleteAccount(onDeleted: () -> Unit) {
+        val user = auth.currentUser
+        val uid = user?.uid ?: return
+
+        viewModelScope.launch {
+            repository.deleteUserFromDb(uid).onSuccess {
+                user.delete().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        onDeleted()
+                    }
+                }
+            }.onFailure {
+            }
         }
     }
 
     fun logout(onLogout: () -> Unit) {
-        auth.signOut()
-        userName = "Logged Out"
-        userEmail = ""
+        repository.logout()
         onLogout()
     }
 }
