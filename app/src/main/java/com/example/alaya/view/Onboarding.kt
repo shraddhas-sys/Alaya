@@ -28,7 +28,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.alaya.R
 import com.example.alaya.navigation.Routes
 import androidx.core.content.edit
-import com.example.alaya.ui.theme.AlayaDeepPurple
 import com.example.alaya.ui.theme.primaryColor
 import com.example.alaya.view.ui.theme.AlayaTheme
 
