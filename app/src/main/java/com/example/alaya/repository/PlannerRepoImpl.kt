@@ -8,15 +8,15 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 
-class PlannerRepoImpl (
+class PlannerRepoImpl(
     private val db: FirebaseDatabase = FirebaseDatabase.getInstance()
 ) : PlannerRepo {
 
     private val dbRef = db.getReference("yoga_plans")
 
     override suspend fun addPlan(plan: YogaPlanModel, callback: (Boolean, String?) -> Unit) {
-        // Create a unique ID for the plan under the user's ID
         val newPlanRef = dbRef.child(plan.userId).push()
         val planWithId = plan.copy(id = newPlanRef.key ?: "")
 
@@ -28,9 +28,7 @@ class PlannerRepoImpl (
     override fun getPlans(userId: String): Flow<List<YogaPlanModel>> = callbackFlow {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val items = snapshot.children.mapNotNull {
-                    it.getValue(YogaPlanModel::class.java)
-                }
+                val items = snapshot.children.mapNotNull { it.getValue(YogaPlanModel::class.java) }
                 trySend(items)
             }
 
@@ -38,8 +36,25 @@ class PlannerRepoImpl (
                 close(error.toException())
             }
         }
-
         dbRef.child(userId).addValueEventListener(listener)
         awaitClose { dbRef.child(userId).removeEventListener(listener) }
+    }
+
+    override suspend fun deletePlan(
+        userId: String,
+        planId: String,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        try {
+            dbRef.child(userId).child(planId).removeValue()
+                .addOnSuccessListener {
+                    callback(true, "Plan Deleted Successfully")
+                }
+                .addOnFailureListener {
+                    callback(false, it.message ?: "Failed to delete")
+                }
+        } catch (e: Exception) {
+            callback(false, e.message)
+        }
     }
 }
