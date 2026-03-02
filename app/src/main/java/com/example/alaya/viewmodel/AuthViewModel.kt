@@ -1,7 +1,6 @@
 package com.example.alaya.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.alaya.model.UserModel
 import com.example.alaya.repository.AuthRepo
 import com.example.alaya.repository.AuthRepoImpl
 

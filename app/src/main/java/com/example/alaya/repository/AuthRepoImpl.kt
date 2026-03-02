@@ -1,6 +1,6 @@
 package com.example.alaya.repository
-import com.google.firebase.auth.FirebaseAuth
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
 
@@ -41,9 +41,19 @@ class AuthRepoImpl : AuthRepo {
         userId: String,
         name: String,
         email: String,
+        completedCount: Int,
+        streak: Int,
+        totalGoal: Int,
         onResult: (Boolean, String?) -> Unit
     ) {
-        val userMap = mapOf("userId" to userId, "name" to name, "email" to email)
+        val userMap = mapOf(
+            "userId" to userId,
+            "name" to name,
+            "email" to email,
+            "completedCount" to completedCount,
+            "streak" to streak,
+            "totalGoal" to totalGoal
+        )
 
         dbRef.child(userId).setValue(userMap).addOnCompleteListener {
             if (it.isSuccessful) onResult(true, null) else onResult(false, it.exception?.message)
