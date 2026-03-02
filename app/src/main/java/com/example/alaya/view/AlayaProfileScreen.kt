@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,13 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.alaya.ui.theme.CardBg
-import com.example.alaya.ui.theme.DangerRed
-import com.example.alaya.ui.theme.DarkText
-import com.example.alaya.ui.theme.ExtraDeepPurpleBody
-import com.example.alaya.ui.theme.VeryLightPurpleHeader
-import com.example.alaya.view.ui.theme.*
-import com.example.alaya.viewmodel.ProfileViewModel // ViewModel import
+import com.example.alaya.ui.theme.AlayaDeepPurple
+import com.example.alaya.ui.theme.AlayaNudeCream
+import com.example.alaya.view.ui.theme.AlayaTheme
+import com.example.alaya.viewmodel.ProfileViewModel
 
 class AlayaProfileScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,9 +38,7 @@ class AlayaProfileScreen : ComponentActivity() {
             AlayaTheme {
                 ProfileScreen(
                     onBack = { finish() },
-                    onLogout = {
-                        finish()
-                    }
+                    onLogout = { finish() }
                 )
             }
         }
@@ -55,48 +51,56 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
+    // Get user data from ViewModel
     val username = viewModel.userName
     val email = viewModel.userEmail
 
+// State to handle which action dialog to show
     var showDialogType by remember { mutableStateOf<String?>(null) }
     var tempValue by remember { mutableStateOf("") }
 
+    val primaryColor = AlayaDeepPurple
+    val backgroundColor = AlayaNudeCream
+
+    // Dynamic AlertDialog for all profile actions
+
     if (showDialogType != null) {
         AlertDialog(
-            onDismissRequest = {
-                showDialogType = null
-                tempValue = ""
-            },
-            containerColor = CardBg,
+            onDismissRequest = { showDialogType = null; tempValue = "" },
+            containerColor = Color.White,
             title = {
                 val title = when(showDialogType) {
                     "name" -> "Update Username"
-                    "email" -> "Update Email"
                     "password" -> "Change Password"
                     "logout" -> "Logout Account"
-                    "delete" -> "Confirm Deletion"
-                    else -> "Alaya"
+                    "delete" -> "Confirm Account Deletion"
+                    "email_info" -> "Email Info"
+                    else -> ""
                 }
-                Text(text = title, color = if(showDialogType == "delete") DangerRed else Color.White, fontWeight = FontWeight.Bold)
+                Text(text = title, color = if(showDialogType == "delete") Color.Red else primaryColor, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (showDialogType in listOf("name", "email", "password")) {
+                    if (showDialogType in listOf("name", "password")) {
                         OutlinedTextField(
                             value = tempValue,
                             onValueChange = { tempValue = it },
-                            label = { Text(if(showDialogType == "password") "New Password" else "Enter new value", color = Color.Gray) },
+                            label = { Text("Enter value") },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF9C27B0)
+                                focusedBorderColor = primaryColor,
+                                focusedLabelColor = primaryColor
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else {
-                        val msg = if(showDialogType == "logout") "Are you sure you want to log out?" else "This action is permanent. All data will be wiped."
-                        Text(text = msg, color = Color.White.copy(alpha = 0.7f))
+                        val msg = when(showDialogType) {
+                            "logout" -> "Are you sure you want to log out?"
+                            "delete" -> "This action is permanent. All your data will be deleted."
+                            "email_info" -> "You cannot change this email address."
+                            else -> ""
+                        }
+                        Text(text = msg, color = Color.Gray)
                     }
                 }
             },
@@ -104,113 +108,138 @@ fun ProfileScreen(
                 Button(
                     onClick = {
                         when(showDialogType) {
-                            "name" -> {
-                                showDialogType = null
-                            }
-                            "logout" -> onLogout()
-                            "delete" -> onLogout()
+                            "name" -> if(tempValue.isNotBlank()) viewModel.updateName(tempValue)
+                            "password" -> if(tempValue.length >= 6) viewModel.updatePassword(tempValue)
+                            "logout" -> viewModel.logout(onLogout)
+                            "delete" -> viewModel.deleteAccount(onLogout)
                         }
                         showDialogType = null
+                        tempValue = ""
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if(showDialogType == "delete") DangerRed else Color(0xFF9C27B0)
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = if(showDialogType == "delete") Color.Red else primaryColor)
                 ) {
-                    Text(if(showDialogType == "delete") "Delete Forever" else "Confirm")
+                    Text(if(showDialogType == "email_info") "Okay" else "Confirm")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialogType = null }) {
-                    Text("Cancel", color = Color.White.copy(alpha = 0.5f))
+                if (showDialogType != "email_info") {
+                    TextButton(onClick = { showDialogType = null }) {
+                        Text("Cancel", color = Color.Gray)
+                    }
                 }
             }
         )
     }
+
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ExtraDeepPurpleBody)
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.fillMaxSize().background(backgroundColor).verticalScroll(rememberScrollState())
     ) {
-        // TOP HEADER
-        Box(modifier = Modifier.fillMaxWidth().height(320.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = VeryLightPurpleHeader,
-                shape = RoundedCornerShape(bottomStart = 70.dp, bottomEnd = 70.dp)
+                color = primaryColor,
+                shape = RoundedCornerShape(bottomStart = 60.dp, bottomEnd = 60.dp)
             ) {}
 
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 50.dp, start = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier.size(35.dp).background(DarkText.copy(alpha = 0.08f), CircleShape)
-                    ) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, tint = DarkText, modifier = Modifier.size(16.dp))
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBackIosNew, null, tint = Color.White)
                     }
-                    Spacer(modifier = Modifier.width(15.dp))
-                    Text("profile", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = DarkText)
+                    Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
-                Spacer(modifier = Modifier.height(25.dp))
-                Surface(modifier = Modifier.size(105.dp), shape = CircleShape, color = ExtraDeepPurpleBody, shadowElevation = 10.dp) {
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Surface(
+                    modifier = Modifier.size(100.dp),
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.2f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(text = username.take(1).uppercase(), fontSize = 48.sp, fontWeight = FontWeight.Bold, color = VeryLightPurpleHeader)
+                        Text(
+                            text = username.take(1).uppercase(),
+                            fontSize = 40.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(15.dp))
-                Text(text = username, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = DarkText)
-                Text(text = email, fontSize = 14.sp, color = DarkText.copy(alpha = 0.6f))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(username, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(email, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
             }
         }
 
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(22.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text("Collection", fontWeight = FontWeight.Bold, color = VeryLightPurpleHeader.copy(alpha = 0.4f), fontSize = 13.sp)
-            ProfileMenuRow(icon = Icons.Default.Favorite, label = "My Favorites", iconBg = Color(0xFFE91E63), onClick = { /* Fav Logic */ })
+        // Settings part
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+            Text("Account Details", color = Color.Gray, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            ProfileMenuRow(Icons.Outlined.Email, "Email: $email", primaryColor.copy(alpha = 0.1f), primaryColor) {
+                showDialogType = "email_info"
+            }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Text("Settings", color = Color.Gray, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            ProfileMenuRow(Icons.Outlined.Person, "Change Username", primaryColor.copy(alpha = 0.1f), primaryColor) {
+                tempValue = username
+                showDialogType = "name"
+            }
+            ProfileMenuRow(Icons.Outlined.Lock, "Change Password", primaryColor.copy(alpha = 0.1f), primaryColor) {
+                tempValue = ""
+                showDialogType = "password"
+            }
 
-            Text("Account Settings", fontWeight = FontWeight.Bold, color = VeryLightPurpleHeader.copy(alpha = 0.4f), fontSize = 13.sp)
-            ProfileMenuRow(icon = Icons.Outlined.Person, label = "Change Username", iconBg = Color(0xFF9C27B0), onClick = { showDialogType = "name"; tempValue = username })
-            ProfileMenuRow(icon = Icons.Outlined.Email, label = "Change Email", iconBg = Color(0xFF03A9F4), onClick = { showDialogType = "email"; tempValue = email })
-            ProfileMenuRow(icon = Icons.Outlined.Lock, label = "Change Password", iconBg = Color(0xFFFF9800), onClick = { showDialogType = "password"; tempValue = "" })
+            Spacer(modifier = Modifier.height(10.dp))
+            Text("Danger Zone", color = Color.Red.copy(alpha = 0.7f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text("Danger Zone", fontWeight = FontWeight.Bold, color = DangerRed.copy(alpha = 0.8f), fontSize = 13.sp)
-            ProfileMenuRow(icon = Icons.AutoMirrored.Filled.Logout, label = "Log out", iconBg = Color(0xFF607D8B), onClick = { showDialogType = "logout" })
-            ProfileMenuRow(icon = Icons.Default.DeleteForever, label = "Delete Account", iconBg = Color(0xFFE53935), isDanger = true, onClick = { showDialogType = "delete" })
+            ProfileMenuRow(Icons.Default.DeleteForever, "Delete Account", Color.Red.copy(alpha = 0.1f), Color.Red) {
+                showDialogType = "delete"
+            }
+            ProfileMenuRow(Icons.AutoMirrored.Filled.Logout, "Log out", Color.Gray.copy(alpha = 0.1f), Color.Gray) {
+                showDialogType = "logout"
+            }
         }
     }
 }
 
+// Profile menu part
 @Composable
-fun ProfileMenuRow(icon: ImageVector, label: String, iconBg: Color, isDanger: Boolean = false, onClick: () -> Unit) {
+fun ProfileMenuRow(
+    icon: ImageVector,
+    label: String,
+    iconBg: Color,
+    tintColor: Color,
+    onClick: () -> Unit
+) {
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xFF2D243F),
-        shadowElevation = 1.dp
+        shape = RoundedCornerShape(15.dp),
+        color = Color.White
     ) {
-        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(40.dp).background(iconBg, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+        Row(modifier = Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(35.dp).background(iconBg, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = tintColor, modifier = Modifier.size(18.dp))
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = label, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = if(isDanger) Color(0xFFFF5252) else Color.White)
+            Spacer(modifier = Modifier.width(15.dp))
+            Text(
+                text = label,
+                color = if(label == "Delete Account") Color.Red else AlayaDeepPurple,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium
+            )
             Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+            if (!label.startsWith("Email")) {
+                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+            }
         }
     }
 }
