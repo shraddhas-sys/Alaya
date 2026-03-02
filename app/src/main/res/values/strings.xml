@@ -14,4 +14,11 @@
     <string name="title_activity_today_fragment">TodayFragment</string>
     <string name="title_activity_therapy_screen">TherapyScreen</string>
     <string name="title_activity_dashboard_ui">DashboardUI</string>
+    <string name="title_activity_planner_screen">PlannerScreen</string>
+    <string name="title_activity_meal_planner_screen">MealPlannerScreen</string>
+    <string name="title_activity_success_screen">SuccessScreen</string>
+    <string name="title_activity_planner">Planner</string>
+    <string name="title_activity_planner_ui">PlannerUI</string>
+    <string name="title_activity_alaya_notification_sheet">AlayaNotificationSheet</string>
+    <string name="title_activity_alaya_profile_screen">AlayaProfileScreen</string>
 </resources>
